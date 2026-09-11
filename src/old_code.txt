@@ -1,0 +1,69 @@
+
+"""
+
+# lets start make routs or endopoints
+
+@app.get("/hello-world")
+def hello_world():
+    return {
+        "massage": "hello world"
+    } #JSON
+
+# the data we returned is either 
+# pydantic object or dict/json
+
+
+"""
+
+
+text_posts= {
+
+
+     1: {"title": "New Post" , "content": "cool test post"}
+    ,2: {"title": "Morning Routine", "content": "A simple morning routine can make the rest of the day feel more focused."}
+    ,3: {"title": "Learning in Small Steps", "content": "Consistent practice for a few minutes each day adds up faster than expected."}
+    ,4: {"title": "A Walk Outside", "content": "A short walk is a good way to clear your head and notice something new nearby."}
+    ,5: {"title": "Keep It Simple", "content": "The clearest solution is often the one with the fewest moving parts."}
+    ,6: {"title": "Weekend Reading", "content": "There is something satisfying about setting aside time to read without rushing."}
+    ,7: {"title": "Useful Questions", "content": "Asking a precise question is often the first step toward solving a difficult problem."}
+    ,8: {"title": "Making Progress", "content": "Small improvements are still progress, especially when they become a habit."}
+    ,9: {"title": "A Fresh Start", "content": "Every morning offers a chance to begin again with a clearer plan."}
+    ,10: {"title": "Good Notes", "content": "Writing down what you learn makes it easier to remember and share later."}
+    ,11: {"title": "End of the Day", "content": "Taking a moment to review the day can reveal both useful lessons and small wins."}
+
+             
+}
+
+@app.get("/posts")
+def get_all_posts(limit: int = len(text_posts)):
+    if limit < len(text_posts):
+        return dict(list(text_posts.items())[:limit])
+    
+    return text_posts
+    
+@app.get("/posts/{id}")
+def get_post(id: int):
+    if id not in text_posts:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return text_posts.get(id)
+
+
+
+
+"""
+for creating the post there is 
+something differnce, in fastapi 
+they has an automatic data validation
+that is check whether data is send to 
+the function to make sure that is accurate
+
+
+
+"""
+
+@app.post("/posts")
+def create_post(post: PostCreate) -> PostResponse:
+    new_post = {"title" : post.title,"content":post.content}
+    text_posts[max(text_posts.keys()) + 1] = new_post
+
+    return new_post

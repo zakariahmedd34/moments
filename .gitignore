@@ -151,6 +151,10 @@ activemq-data/
 .env
 .envrc
 .venv
+<<<<<<< HEAD
+=======
+test.db
+>>>>>>> 9f100bc (feat: add post upload and feed endpoints)
 env/
 venv/
 ENV/
