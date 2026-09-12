@@ -186,7 +186,7 @@ If the ImageKit upload fails, the API answers **502** and the Capture dialog kee
 ## Project structure
 
 ```text
-fast/
+moments/
 ├── backend/                         FastAPI server (Python)
 │   ├── app/
 │   │   ├── main.py                  creates the app, serves the React build
