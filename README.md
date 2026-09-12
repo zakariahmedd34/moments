@@ -86,7 +86,6 @@ FastAPI builds these docs automatically at `/api/docs`. You can call every endpo
 
 ![Swagger API docs](docs/screenshots/api-docs.png)
 
-> The screenshots use demo users and sample photos from [picsum.photos](https://picsum.photos).
 
 ---
 
