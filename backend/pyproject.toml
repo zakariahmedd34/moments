@@ -1,8 +1,7 @@
 [project]
-name = "fast"
+name = "moments-backend"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "FastAPI backend for Moments, a visual daily journal"
 authors = [
     {name = "Zakaria"}
 ]
@@ -16,13 +15,6 @@ dependencies = [
     "uvicorn[standard]>=0.52.4",
 ]
 
-[project.scripts]
-fast = "src:main"
-
-[build-system]
-requires = ["uv_build>=0.12.5,<0.13.0"]
-build-backend = "uv_build"
-
-[tool.uv.build-backend]
-module-name = "src"
-module-root = ""
+[tool.uv]
+# this is an application, not a library to publish
+package = false
