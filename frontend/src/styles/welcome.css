@@ -1,0 +1,128 @@
+.welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px;
+  max-width: 1440px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 40px clamp(16px, 7vw, 120px);
+}
+
+.welcome__panel {
+  width: min(100%, 440px);
+}
+
+.welcome__step {
+  display: grid;
+  gap: 24px;
+  animation: welcome-step 0.45s var(--ease-ios) both;
+}
+
+@keyframes welcome-step {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.welcome__title {
+  margin: 0 0 12px;
+  color: var(--label-strong);
+  font-size: clamp(48px, 5.6vw, 76px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.welcome__subtitle {
+  margin: 0;
+  color: var(--label-strong);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.welcome__step-title {
+  margin: 0;
+  color: var(--label-strong);
+  font-size: 31px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.welcome__form {
+  display: grid;
+  gap: 16px;
+}
+
+.welcome__form .btn {
+  margin-top: 8px;
+}
+
+.welcome__footnote {
+  margin: 0;
+  color: var(--label-disabled);
+  font-size: var(--text-footnote);
+  line-height: 1.45;
+}
+
+.welcome__back {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--label-strong);
+}
+
+.welcome__back:hover {
+  background: rgb(239 243 244 / 0.1);
+}
+
+.welcome__back svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.welcome__mark {
+  justify-self: center;
+  width: min(100%, 520px);
+  height: auto;
+  animation: welcome-mark 1.2s ease both;
+}
+
+@keyframes welcome-mark {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 32px;
+    padding-top: 32px;
+  }
+
+  .welcome__mark {
+    order: -1;
+    justify-self: start;
+    width: 52px;
+  }
+
+  .welcome__title {
+    font-size: clamp(40px, 11vw, 56px);
+  }
+}
