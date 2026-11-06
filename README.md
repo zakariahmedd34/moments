@@ -19,8 +19,6 @@
 - **Works on phones.** On a small screen, the day list and the day view become separate screens.
 - **One app or two servers.** Develop with hot reload on two servers, or build once and FastAPI serves everything from one URL.
 
-## Screenshots
-
 ### Welcome and sign in
 
 A two-step sign in: first your email or username, then your password.
