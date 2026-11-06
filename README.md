@@ -6,22 +6,6 @@
 - **Frontend:** React 19, TypeScript, Vite, React Router
 
 ![The journal view: days on the left, the selected day's moments on the right](docs/screenshots/journal.png)
-
-## Contents
-
-1. [Features](#features)
-2. [Screenshots](#screenshots)
-3. [How the system works](#how-the-system-works)
-4. [Project structure](#project-structure)
-5. [Getting started](#getting-started)
-6. [Configuration](#configuration)
-7. [API reference](#api-reference)
-8. [Data model](#data-model)
-9. [Frontend guide](#frontend-guide)
-10. [Security notes](#security-notes)
-11. [Troubleshooting](#troubleshooting)
-12. [Roadmap](#roadmap)
-
 ---
 
 ## Features
@@ -315,37 +299,6 @@ All backend settings live in `backend/.env`. That file is in `.gitignore`, so ne
 If `JWT_SECRET` is missing, the server stops at startup with a clear message.
 
 ---
-
-## API reference
-
-Every endpoint lives under **`/api`**. Endpoints marked 🔒 need the header `Authorization: Bearer <access_token>`.
-
-### Auth and users
-
-| Method | Path | Body | Response |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | JSON `{ email, username, password }` | `201` user |
-| `POST` | `/api/auth/jwt/login` | **form** `username`, `password`. `username` can be an email, a username, or `@username` | `200 { access_token, token_type: "bearer" }` |
-| `POST` | `/api/auth/jwt/logout` 🔒 | – | `204` (the token is stateless; the app just deletes it) |
-| `POST` | `/api/auth/forgot-password` | JSON `{ email }` | `202` (no email service yet: the reset token prints in the backend console) |
-| `POST` | `/api/auth/reset-password` | JSON `{ token, password }` | `200` |
-| `POST` | `/api/auth/request-verify-token` | JSON `{ email }` | `202` |
-| `POST` | `/api/auth/verify` | JSON `{ token }` | `200` user |
-| `GET` | `/api/users/me` 🔒 | – | `200` user |
-| `PATCH` | `/api/users/me` 🔒 | JSON with any of `{ email, username, password }` | `200` user |
-| `GET` `PATCH` `DELETE` | `/api/users/{id}` 🔒 | superusers only | user |
-
-**Username rules:** 3–20 characters, only `a-z`, `0-9`, and `_`. It's saved in lowercase and must be unique.
-
-### Moments
-
-| Method | Path | Body | Response |
-| --- | --- | --- | --- |
-| `GET` | `/api/feed` 🔒 | – | `200 { posts: Moment[] }`, newest first |
-| `POST` | `/api/upload` 🔒 | **multipart** `file` (image/* or video/*), `caption` (≤ 280 chars, optional) | `200` Moment |
-| `DELETE` | `/api/posts/{id}` 🔒 | – | `200 { success, message }`. Only the owner can delete. |
-| `GET` | `/api/health` | – | `200 { status: "ok" }` |
-
 **A Moment looks like this:**
 
 ```json
@@ -364,47 +317,7 @@ Every endpoint lives under **`/api`**. Endpoints marked 🔒 need the header `Au
 
 `created_at` is always UTC. The frontend turns it into your local time and local day. `is_owner` says whether the signed-in user made the moment.
 
-### Errors
 
-| Status | When | `detail` example |
-| --- | --- | --- |
-| `400` | wrong login | `"LOGIN_BAD_CREDENTIALS"` |
-| `400` | email already used | `"REGISTER_USER_ALREADY_EXISTS"` |
-| `400` | username already used | `"USERNAME_ALREADY_EXISTS"` |
-| `400` | caption too long / not an image or video | `"Caption must be 280 characters or fewer"` |
-| `401` | missing or expired token | `"Unauthorized"` |
-| `403` | deleting someone else's moment | `"You are not authorized to delete this post"` |
-| `404` | moment not found | `"Post not found"` |
-| `422` | a field is missing or invalid | list of field errors |
-| `502` | ImageKit upload failed | `"Image upload failed: ..."` |
-
-`frontend/src/services/api.ts` turns these into friendly messages.
-
-### Try it from the terminal
-
-Git Bash, macOS, or Linux:
-
-```bash
-# create an account
-curl -X POST http://localhost:8000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"zakaria@example.com","username":"zakaria","password":"a-good-password"}'
-
-# sign in (form data, not JSON) and keep the token
-TOKEN=$(curl -s -X POST http://localhost:8000/api/auth/jwt/login \
-  -d "username=zakaria&password=a-good-password" | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
-
-# read the feed
-curl http://localhost:8000/api/feed -H "Authorization: Bearer $TOKEN"
-
-# upload a moment
-curl -X POST http://localhost:8000/api/upload -H "Authorization: Bearer $TOKEN" \
-  -F "file=@photo.jpg" -F "caption=Hello moments"
-```
-
-Or open **/api/docs**, click **Authorize**, enter your username and password, and try every endpoint in the browser.
-
----
 
 ## Data model
 
@@ -430,74 +343,3 @@ erDiagram
         datetime created_at "UTC"
     }
 ```
-
-The photos themselves live on ImageKit. The database only stores their URLs. Tables are created automatically when the server starts. There are no migrations yet (see [Roadmap](#roadmap)).
-
----
-
-## Frontend guide
-
-### Pages (routes)
-
-| URL | What you see |
-| --- | --- |
-| `/welcome` | sign in / create account (the only page when signed out) |
-| `/` | everyone's journal, today selected |
-| `/day/2026-09-12` | everyone's journal on that day |
-| `/mine`, `/mine/day/:day` | only your moments |
-| `/u/:username`, `/u/:username/day/:day` | one person's journal (`/u/<you>` goes to `/mine`) |
-| `...?moment=<id>` | any page with the Open Diary on top |
-
-### How the pieces fit
-
-- **`services/api.ts`** is the only place that calls `fetch`. It adds `/api` and the token, reads JSON, and turns errors into readable messages. If the server can't be reached, it says so.
-- **`context/AuthProvider.tsx`** keeps the token in `localStorage` (key `moments.token`). On start, it checks the token with `/api/users/me`. States: `loading` → `signedIn` / `signedOut` / `unavailable`.
-- **`hooks/useFeed.ts`** loads `/api/feed` once. After you capture or delete a moment, it updates the list in place without reloading.
-- **`utils/days.ts`** groups moments by **local** day. Today is always listed, even when it's empty.
-- **`utils/prepareImage.ts`** resizes photos larger than 2560px and re-encodes JPEG/HEIC, which removes EXIF data like GPS location. GIFs are uploaded unchanged.
-- **`utils/images.ts`** asks ImageKit for small thumbnails (`?tr=w-400,q-80`), so the list doesn't download full photos.
-- **`styles/tokens.css`** holds the design tokens: black background (`#000`), cards (`#1C1C1E`), iOS orange accent (`#FF9F0A`), and the system font with an Inter fallback.
-
-### Design
-
-The look is iOS-style dark: a blurred glass header, large titles with a small date above, rounded cards, and a segmented Everyone/Mine switch. The sign-in page follows an X-style layout with a big headline, pill buttons, and floating-label inputs (reference in `docs/design/`).
-
----
-
-## Security notes
-
-- **Secrets stay in `backend/.env`.** An old version of this repo had the JWT secret in the code. It has been replaced, so tokens from before the change no longer work (just sign in again).
-- **Passwords** are hashed by fastapi-users and never stored in plain text. Unknown usernames take as long as wrong passwords, so attackers can't tell which usernames exist.
-- **Tokens** are stored in `localStorage`. That's simple, but any script running on the page can read it. Keep third-party scripts out of the frontend.
-- **Every moment is public** to all signed-in users. The sign-up screen tells people this.
-- **Password reset and email verification** print their tokens in the backend console. Connect an email service before real users rely on them.
-- **Photo privacy:** the browser removes GPS data from JPEG/HEIC photos before upload.
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-| --- | --- |
-| The app says **"Can't reach the server"** | The backend isn't running. Start it in `backend/` with `uv run uvicorn app.main:app --reload`. |
-| `RuntimeError: JWT_SECRET is not set` | Create `backend/.env` from `.env.example` and set `JWT_SECRET`. |
-| Suddenly signed out after updating | The JWT secret changed. Sign in again. |
-| Upload fails with "Your photo couldn't be uploaded" | Check the three `IMAGEKIT_*` values in `backend/.env`. |
-| `localhost:8000` shows JSON instead of the app | Build the frontend (`npm run build`), then restart the backend. |
-| Port already in use | Stop the old server, or use another port: `uv run uvicorn app.main:app --port 8001` and `API_TARGET=http://127.0.0.1:8001 npm run dev`. |
-| `uv sync` fails with "Access is denied" on Windows | Antivirus or permissions blocked uv's temp folder. Run it again, or run `uv sync --reinstall-package uvicorn`. |
-
----
-
-## Roadmap
-
-- [x] Accounts with username, sign in by email or username
-- [x] Journal split view, Everyone / Mine, user journals
-- [x] Open Diary with previous/next and delete
-- [x] Capture with in-browser resize and GPS removal
-- [x] One-app mode (FastAPI serves the React build)
-- [ ] Subtle page animations (View Transitions API)
-- [ ] Mobile tab bar and polish
-- [ ] Automated tests (pytest for the API, component tests for React)
-- [ ] PostgreSQL + Alembic migrations for deployment
-- [ ] Docker image and CI/CD (GitHub Actions)
